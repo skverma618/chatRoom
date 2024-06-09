@@ -1,5 +1,11 @@
-import { server as WebSocketServer } from "websocket";
+import { connection, server as WebSocketServer } from "websocket";
 import http from "http";
+import { IncomingMessage, SupportedMessage } from "./messages";
+import { InMemoryStore } from "./store/InMemoryStore";
+import { UserManager } from "./UserManager";
+
+const store = new InMemoryStore();
+const userManager = new UserManager();
 
 const server = http.createServer(function (request: any, response: any) {
   console.log(new Date() + " Received request for " + request.url);
@@ -40,6 +46,11 @@ wsServer.on("request", function (request) {
   connection.on("message", function (message) {
     // TODO: Add Rate limiting here
     if (message.type === "utf8") {
+      try {
+        messageHandler(connection, JSON.parse(message.utf8Data));
+      } catch (e) {
+        console.log(e)
+      }
       console.log("Received Message: " + message.utf8Data);
       connection.sendUTF(message.utf8Data);
     } else if (message.type === "binary") {
@@ -55,3 +66,27 @@ wsServer.on("request", function (request) {
     );
   });
 });
+
+
+const messageHandler = (conn: connection, message: IncomingMessage) => {
+  if (message.type === SupportedMessage.JoinRoom) {
+    const payload = message.payload;
+    userManager.addUser(payload.roomId, payload.userId, payload.name, conn);
+  }
+
+  if (message.type === SupportedMessage.SendMessage) {
+    const payload = message.payload;
+    const user = userManager.getUser(payload.roomId, payload.userId);
+
+    if (!user) {
+      console.error("User not found in the db");
+      return;
+    }
+
+    let chat = store.addChat(payload.userId, user.name, payload.roomId, payload.message);
+    if (!chat) {
+      return;
+    }
+
+  }
+}

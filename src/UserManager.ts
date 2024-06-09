@@ -1,8 +1,10 @@
+import { connection } from "websocket";
 
 
 interface User {
     id: string,
-    name: string
+    name: string,
+    conn: connection
 }
 interface roomUsers {
     users: User[]
@@ -15,7 +17,7 @@ export class UserManager {
         this.rooms = new Map<string, roomUsers>();
     }
 
-    addUser(roomId: string, userId: string, name: string) {
+    addUser(roomId: string, userId: string, name: string, conn: connection) {
         if(!this.rooms.get(roomId)) {
             this.rooms.set(roomId, {
                 users: []
@@ -25,7 +27,8 @@ export class UserManager {
         const room = this.rooms.get(roomId);
         room?.users.push({
             id: userId,
-            name
+            name,
+            conn
         })
 
     }

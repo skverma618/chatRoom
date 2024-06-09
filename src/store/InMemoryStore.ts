@@ -29,14 +29,15 @@ export class InMemoryStore implements Store {
         const room = this.store.get(roomId);
         if (!room) return [];
 
-        room.chats.push({
+        const chat: Chat = {
             id: (this.globalChatId++).toString(),
-            name: name,
-            userId: userId,
-            message: message,
-            timestamp: new Date(),
+            userId,
+            name,
+            message,
             upvotes: [],
-        });
+            timestamp: new Date()
+        }
+        room.chats.push(chat);
     }
 
     upvoteChat(userId: UserId, chatId: string, roomId: string) { 
