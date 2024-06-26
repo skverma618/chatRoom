@@ -89,4 +89,12 @@ const messageHandler = (conn: connection, message: IncomingMessage) => {
     }
 
   }
+
+  if (message.type === SupportedMessage.UpvoteMessage) {
+    const payload = message.payload;
+
+    store.upvoteChat(payload.userId, payload.chatId, payload.roomId);
+
+    
+  }
 }
